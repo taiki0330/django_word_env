@@ -1,27 +1,11 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>報告書作成</title>
-</head>
-<body>
-    <form method="post">
-        {% csrf_token %}
-        <select name="event">
-            {% for event in events %}
-            <option value="{{ event.id }}">{{ event.事件名 }}</option>
-            {% endfor %}
-        </select>
+{% extends 'base.html' %}
 
-        <select name="template">
-            <option value="template1">テンプレート1</option>
-            <option value="template2">テンプレート2</option>
-            <option value="template3">テンプレート3</option>
-            <option value="template4">テンプレート4</option>
-            <option value="template5">テンプレート5</option>
-        </select>
 
-        <button type="submit">報告書作成</button>
-    </form>
-</body>
-</html>
+{% block content %}
+    <ul>        
+        {% for division in object_list %}
+            <li><a href="{% url 'crime_list' division.id %}">{{ division.name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock content %}
+    

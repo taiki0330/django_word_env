@@ -7,6 +7,9 @@ class Division(models.Model):
     def __str__(self):
         return self.name
 
+
+
+
 class Crime(models.Model):
     title = models.CharField(max_length=100)
     division = models.ForeignKey(Division, related_name="crimes", on_delete=models.CASCADE)
