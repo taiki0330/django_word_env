@@ -5,6 +5,6 @@
     
     <h2>{{ object.title }}</h2>
     <p>{{ object.detail }}</p>
-    <button><a href="">報告書作成</a></button>
+    <button><a href="{% url 'generate_report' object.id %}">報告書作成</a></button>
 
 {% endblock content %}
