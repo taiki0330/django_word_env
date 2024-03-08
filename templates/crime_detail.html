@@ -6,14 +6,19 @@
     <h2>{{ object.title }}</h2>
     <p>{{ object.detail }}</p>
     {% comment %} <button><a href="{% url 'generate_report' object.id %}">報告書作成</a></button> {% endcomment %}
+
     <form method="post">
         {% csrf_token %}
-        <label for="template">テンプレートを選択してください:</label>
-        <select name="template" id="template">
-            {% for template in templates %}
-            <option value="{{ template }}">{{ template }}</option>
-            {% endfor %}
-        </select>
+        <div>
+            <label for="template">テンプレートを選択してください:</label>
+        </div>
+        <div>
+            <select name="template" id="template">
+                {% for template in templates %}
+                <option value="{{ template }}">{{ template }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <input type="submit" value="報告書作成">
     </form>
 
