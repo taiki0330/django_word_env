@@ -3,22 +3,39 @@
 
 {% block content %}
     
-    <h2>{{ object.title }}</h2>
-    <p>{{ object.detail }}</p>
+    <h2>{{ object.crime_name }}</h2>
+    <h3>発生日時</h3>
+    <p>{{ object.crime_start_date }}</p>
+    <p>{{ object.crime_start_time }}ころから</p>
+    <p>{{ object.crime_end_date }}</p>
+    <p>{{ object.crime_end_time }}ころまでの間</p>
+    <h3>発生場所</h3>
+    <p>{{ object.crime_place }}</p>
+    <h3>概要</h3>
+    <p>{{ object.crime_fact }}</p>
+    <p></p>
+    <h3>被疑者人定事項</h3>
+    <p>本籍：{{ object.suspect_honseki }}</p>
+    <p>住居：{{ object.suspect_address }}</p>
+    <p>職業：{{ object.suspect_job }}</p>
+    <p>氏名：{{ object.suspect_name }}</p>
+    <p>生年月日：{{ object.suspect_birthday }}</p>
+    
     {% comment %} <button><a href="{% url 'generate_report' object.id %}">報告書作成</a></button> {% endcomment %}
 
-    <form method="post">
+    <form method="post" action="">
         {% csrf_token %}
         <div>
             <label for="template">テンプレートを選択してください:</label>
         </div>
-        <div>
+        <div>Templates found: {{ templates|length }}</div> 
+        <div>Template_dir:{{ template_dir }}</div>
+        <div>Template_files:{{ template_files }}</div>
             <select name="template" id="template">
-                {% for template in templates %}
+                {% for template in template_files %}
                 <option value="{{ template }}">{{ template }}</option>
                 {% endfor %}
             </select>
-        </div>
         <input type="submit" value="報告書作成">
     </form>
 
