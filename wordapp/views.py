@@ -1,12 +1,13 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView
 from .models import Division, Crime
+from django.urls import reverse_lazy
 from django.shortcuts import render, redirect
 from docxtpl import DocxTemplate
 from django.http import HttpResponse
 import os
 import glob
 from django.conf import settings
-from wordproject.settings import BASE_DIR
+from wordproject.settings import DOCX_TEMPLATE_DIR
 
 
 class DivisionListView(ListView):
@@ -18,12 +19,84 @@ class CrimeListview(ListView):
     
     def get_queryset(self):
         return Crime.objects.filter(division_id=self.kwargs['division_id'])
+    
+    def get_context_data(self, **kwargs):
+        # 親クラスの get_context_data を呼び出して、コンテキストを取得
+        context = super().get_context_data(**kwargs)
+        # コンテキストに division_id を追加
+        context['division_id'] = self.kwargs.get('division_id')
+        return context
 
 
 
 class CrimeDetailView(DetailView):
     model = Crime
     template_name = 'crime_detail.html'
+
+
+class CrimeCreate(CreateView):
+    model = Crime
+    fields = [
+        'crime_name', 
+        'crime_name_second', 
+        'crime_start_date', 
+        'crime_start_time', 
+        'crime_end_date', 
+        'crime_end_time', 
+        'crime_place', 
+        'crime_fact',
+        'suspect_honseki',
+        'suspect_address',
+        'suspect_job',
+        'suspect_name',
+        'suspect_birthday',
+        ]
+    template_name = 'crime_create.html'
+    
+    def form_valid(self, form):
+        form.instance.division_id = self.kwargs['division_id']
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('crime_list', kwargs={'division_id': self.kwargs['division_id']})
+
+
+class CrimeDelete(DeleteView):
+    model = Crime
+    # 削除後にリダイレクトするURL（例：ホームページやリストビューへ）
+    def get_success_url(self):
+        # 削除されたCrimeオブジェクトが属していたDivisionのIDを取得
+        division_id = self.object.division_id
+        # division_idを用いてリダイレクト先のURLを生成
+        return reverse_lazy('crime_list', kwargs={'division_id': division_id})
+
+class CrimeUpdate(UpdateView):
+    model = Crime
+    fields = [
+        'crime_name', 
+        'crime_name_second', 
+        'crime_start_date', 
+        'crime_start_time', 
+        'crime_end_date', 
+        'crime_end_time', 
+        'crime_place', 
+        'crime_fact',
+        'suspect_honseki',
+        'suspect_address',
+        'suspect_job',
+        'suspect_name',
+        'suspect_birthday',
+    ]
+    template_name = 'crime_update.html'
+
+    def get_success_url(self):
+        # 更新後にcrime_detailページに戻る
+        return reverse_lazy('crime_detail', kwargs={'pk': self.object.pk})
+
+
+
+
+
 
 
 
@@ -46,6 +119,7 @@ class CrimeDetailView(DetailView):
 #         'suspect_birthday': crime.suspect_birthday,
 #         }
 #     doc.render(context)
+
 
 #     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
 #     response['Content-Disposition'] = 'attachment; filename="report.docx"'
@@ -86,12 +160,9 @@ class CrimeDetailView(DetailView):
 
 def select_template(request, pk):
     crime = Crime.objects.get(pk=pk)
-
     # docx_templatesフォルダ内の全てのdocxファイルを取得
-    template_folder = os.path.join(BASE_DIR, 'docx_templates')
-    template_files = [file for file in os.listdir(template_folder) if file.endswith('.docx')]
-    print(template_files)
-
+    template_folder = os.path.join(settings.BASE_DIR, 'docx_templates')
+    template_files = [file for file in os.listdir(DOCX_TEMPLATE_DIR) if file.endswith('.docx')]
     context = {
         'division': crime.division.name,
         'crime_name': crime.crime_name, 
@@ -117,3 +188,4 @@ def select_template(request, pk):
     doc.save(response)
 
     return response
+

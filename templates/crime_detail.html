@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 
 
-{% block content %}
-    
-    <h2>{{ object.crime_name }}</h2>
+{% block content %}    
+    <h2>{{ object.crime_name }}（{{ object.crime_name_second }}）</h2>
     <h3>発生日時</h3>
     <p>{{ object.crime_start_date }}</p>
     <p>{{ object.crime_start_time }}ころから</p>
@@ -20,22 +19,32 @@
     <p>職業：{{ object.suspect_job }}</p>
     <p>氏名：{{ object.suspect_name }}</p>
     <p>生年月日：{{ object.suspect_birthday }}</p>
+
+    <a href="{% url 'crime_update' pk=crime.id %}">編集</a>
+
+
+    <form action="{% url 'crime_delete' pk=crime.id %}" method="post" onsubmit="return confirm('本当に削除しますか？');">
+        {% csrf_token %}
+        <input type="submit" value="削除">
+    </form>
+
     
-    {% comment %} <button><a href="{% url 'generate_report' object.id %}">報告書作成</a></button> {% endcomment %}
+    {% comment %} <button><a href="{% url 'generate_report' object.id %}">人着の報告書作成</a></button> {% endcomment %}
 
     <form method="post" action="">
         {% csrf_token %}
         <div>
             <label for="template">テンプレートを選択してください:</label>
+            <div>{{ docx_files }}</div>
         </div>
-        <div>Templates found: {{ templates|length }}</div> 
+        {% comment %} <div>Templates found: {{ templates|length }}</div> 
         <div>Template_dir:{{ template_dir }}</div>
-        <div>Template_files:{{ template_files }}</div>
-            <select name="template" id="template">
-                {% for template in template_files %}
+        <div>Template_files:{{ template_files }}</div> {% endcomment %}
+        <select name="template" id="template">
+                {% for template in docx_files %}
                 <option value="{{ template }}">{{ template }}</option>
                 {% endfor %}
-            </select>
+        </select>
         <input type="submit" value="報告書作成">
     </form>
 

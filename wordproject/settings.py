@@ -16,7 +16,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Word テンプレートファイルが保存されているディレクトリのパス
-DOCX_TEMPLATE_DIR = BASE_DIR / 'docx_templates'
+DOCX_TEMPLATE_DIR = BASE_DIR / 'docx_templates/'
 
 
 # Quick-start development settings - unsuitable for production

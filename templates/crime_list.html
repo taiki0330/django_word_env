@@ -2,10 +2,11 @@
 
 
 {% block content %}
-    
-    <ul>        
+    {{ docx_files}}
+    <a href="{% url 'crime_create' division_id=division_id %}">新規登録</a> 
+    <ul>         
         {% for crime in object_list %}
-            <li><a href="{% url 'crime_detail' crime.id %}">{{ crime.crime_name }}</a></li>
+            <li><a href="{% url 'crime_detail' crime.id %}">{{ crime.crime_name }}（{{ crime.crime_name_second }}）</a></li>
         {% endfor %}
     </ul>
 
