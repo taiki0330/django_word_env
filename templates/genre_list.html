@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 
 
+
 {% block content %}
-    <ul>        
-        {% for division in object_list %}
-            <li><a href="{% url 'crime_list' division.id %}">{{ division.name }}</a></li>
-        {% endfor %}
-    </ul>
+    <div class="container m-auto py-4">
+        <ul>        
+            {% for division in object_list %}
+                <li class="text-2xl border p-5"><a href="{% url 'crime_list' division.id %}" class="hover:text-green-700">{{ division.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock content %}
     

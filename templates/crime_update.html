@@ -1,5 +1,14 @@
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">更新</button>
-</form>
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="container py-4 px-5">
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="hover:opacity-70 text-white border-2 border-green-600 rounded py-2 px-5 bg-slate-900">更新</button>
+    </form>
+
+</div>
+{% endblock content %}

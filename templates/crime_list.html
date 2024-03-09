@@ -2,13 +2,13 @@
 
 
 {% block content %}
-    {{ docx_files}}
-    <a href="{% url 'crime_create' division_id=division_id %}">新規登録</a> 
-    <ul>         
-        {% for crime in object_list %}
-            <li><a href="{% url 'crime_detail' crime.id %}">{{ crime.crime_name }}（{{ crime.crime_name_second }}）</a></li>
-        {% endfor %}
-    </ul>
-
+    <div class="container m-auto">
+        <a href="{% url 'crime_create' division_id=division_id %}" class="bg-black text-white max-w-28 rounded border-2 border-green-700 text-center text-lg py-2 px-3 block mt-4 ml-4 mb-5 hover:text-green-400">新規登録</a> 
+        <ul>         
+            {% for crime in object_list %}
+                <li class="border py-4 px-2"><a href="{% url 'crime_detail' crime.id %}" class="hover:text-green-600">{{ crime.crime_name }}（{{ crime.crime_name_second }}）</a></li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock content %}
     

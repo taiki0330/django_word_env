@@ -2,10 +2,12 @@
 
 
 {% block content %}
-<form action="" method="post">
+<div class="container m-auto p-2">    
+    <form action="" method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">登録する</button>
+        <button type="submit" class="text-gray-300 border-2 border-green-600 rounded py-2 px-4 bg-slate-700 hover:text-green-400">登録する</button>
     </form>
+</div>
 {% endblock content %}
     
