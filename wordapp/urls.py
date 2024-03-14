@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import DivisionListView, CrimeListview, CrimeDetailView, CrimeCreate, CrimeDelete, CrimeUpdate, select_template
+from .views import DivisionListView, CrimeListview, CrimeDetailView, CrimeCreate, CrimeDelete, CrimeUpdate, generate_report
 
 urlpatterns = [
     path('', DivisionListView.as_view(), name='division_list'),
@@ -8,5 +8,5 @@ urlpatterns = [
     path('crime/<int:pk>', CrimeDetailView.as_view(), name='crime_detail'),
     path('crime/delete/<int:pk>/', CrimeDelete.as_view(), name='crime_delete'),
     path('crime/update/<int:pk>/', CrimeUpdate.as_view(), name='crime_update'),
-    path('report/<int:pk>', select_template, name='select_template'),
+    path('report/<int:pk>', generate_report, name='generate_report'),
 ]

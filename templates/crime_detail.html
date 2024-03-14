@@ -30,24 +30,31 @@
         </div>
 
         
-        {% comment %} <button><a href="{% url 'generate_report' object.id %}">人着の報告書作成</a></button> {% endcomment %}
+        {% comment %} <button class="text-white rounded hover:opacity-70 bg-slate-500 py-2 px-5"><a href="{% url 'generate_report' object.id %}">人着の報告書作成</a></button> {% endcomment %}
 
-        <form method="post" action="">
+        <form method="post" enctype="multipart/form-data" action="{% url 'generate_report' pk=crime.pk %}">
+            {% csrf_token %}
+            <label for="docxFile">報告書のテンプレートを選択してください:　</label>
+            <input type="file" id="docxFile" name="docxFile" accept=".docx">
+            <button type="submit" class="bg-red-400 hover:bg-red-500 rounded text-white py-2 px-5">報告書生成</button>
+        </form>
+
+        {% comment %} <form method="post" action="">
             {% csrf_token %}
             <div>
                 <label for="template">テンプレートを選択してください:</label>
                 <div>{{ docx_files }}</div>
             </div>
-            {% comment %} <div>Templates found: {{ templates|length }}</div> 
+            <div>Templates found: {{ templates|length }}</div> 
             <div>Template_dir:{{ template_dir }}</div>
-            <div>Template_files:{{ template_files }}</div> {% endcomment %}
+            <div>Template_files:{{ template_files }}</div>
             <select name="template" id="template">
                     {% for template in docx_files %}
                     <option value="{{ template }}">{{ template }}</option>
                     {% endfor %}
             </select>
             <input type="submit" value="報告書作成">
-        </form>
+        </form> {% endcomment %}
 
     </div>
 {% endblock content %}

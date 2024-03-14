@@ -8,6 +8,7 @@ import os
 import glob
 from django.conf import settings
 from wordproject.settings import DOCX_TEMPLATE_DIR
+from django.core.files.storage import default_storage
 
 
 class DivisionListView(ListView):
@@ -127,6 +128,46 @@ class CrimeUpdate(UpdateView):
 
 #     return response
 
+
+
+
+def generate_report(request, pk):
+    if request.method == 'POST' and request.FILES.get('docxFile'):
+        docx_file = request.FILES['docxFile']
+        file_path = default_storage.save('docx_templates/' + docx_file.name, docx_file)
+        full_file_path = default_storage.path(file_path)
+
+        crime = Crime.objects.get(pk=pk)
+        doc = DocxTemplate(full_file_path)
+        context = {
+        'division': crime.division.name,
+        'crime_name': crime.crime_name, 
+        'crime_fact': crime.crime_fact, 
+        'crime_start_date': crime.crime_start_date,
+        'crime_start_time': crime.crime_start_time,
+        'crime_end_date': crime.crime_end_date,
+        'crime_end_time': crime.crime_end_time,
+        'crime_place': crime.crime_place,
+        'suspect_honseki': crime.suspect_honseki,
+        'suspect_address': crime.suspect_address,
+        'suspect_job': crime.suspect_job,
+        'suspect_name': crime.suspect_name,
+        'suspect_birthday': crime.suspect_birthday,
+        }
+        doc.render(context)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = f'attachment; filename="generated_report_{crime.pk}.docx"'
+        doc.save(response)
+
+        # 一時ファイルを削除
+        default_storage.delete(file_path)
+
+        return response
+    else:
+        # 適切なエラーメッセージを返します。
+        return HttpResponse(status=400, content='Invalid request')
+
 # def select_template(request, pk):
 #     crime = Crime.objects.get(pk=pk)
 #     template_dir = settings.DOCX_TEMPLATE_DIR # docx_templatesディレクトリの絶対パスを取得
@@ -158,34 +199,34 @@ class CrimeUpdate(UpdateView):
 #     templates = [os.path.basename(template_file) for template_file in template_files]
 #     return render(request, 'crime_detail.html', {'templates': templates, 'crime': crime, 'template_dir': template_dir, 'template_files': template_files})
 
-def select_template(request, pk):
-    crime = Crime.objects.get(pk=pk)
-    # docx_templatesフォルダ内の全てのdocxファイルを取得
-    template_folder = os.path.join(settings.BASE_DIR, 'docx_templates')
-    template_files = [file for file in os.listdir(DOCX_TEMPLATE_DIR) if file.endswith('.docx')]
-    context = {
-        'division': crime.division.name,
-        'crime_name': crime.crime_name, 
-        'crime_fact': crime.crime_fact, 
-        'crime_start_date': crime.crime_start_date,
-        'crime_start_time': crime.crime_start_time,
-        'crime_end_date': crime.crime_end_date,
-        'crime_end_time': crime.crime_end_time,
-        'crime_place': crime.crime_place,
-        'suspect_honseki': crime.suspect_honseki,
-        'suspect_address': crime.suspect_address,
-        'suspect_job': crime.suspect_job,
-        'suspect_name': crime.suspect_name,
-        'suspect_birthday': crime.suspect_birthday,
-        'template_files': template_files,  # テンプレートファイルのリストを追加
-    }
+# def select_template(request, pk):
+#     crime = Crime.objects.get(pk=pk)
+#     # docx_templatesフォルダ内の全てのdocxファイルを取得
+#     template_folder = os.path.join(settings.BASE_DIR, 'docx_templates')
+#     template_files = [file for file in os.listdir(DOCX_TEMPLATE_DIR) if file.endswith('.docx')]
+#     context = {
+#         'division': crime.division.name,
+#         'crime_name': crime.crime_name, 
+#         'crime_fact': crime.crime_fact, 
+#         'crime_start_date': crime.crime_start_date,
+#         'crime_start_time': crime.crime_start_time,
+#         'crime_end_date': crime.crime_end_date,
+#         'crime_end_time': crime.crime_end_time,
+#         'crime_place': crime.crime_place,
+#         'suspect_honseki': crime.suspect_honseki,
+#         'suspect_address': crime.suspect_address,
+#         'suspect_job': crime.suspect_job,
+#         'suspect_name': crime.suspect_name,
+#         'suspect_birthday': crime.suspect_birthday,
+#         'template_files': template_files,  # テンプレートファイルのリストを追加
+#     }
 
-    doc = DocxTemplate(os.path.join(template_folder, template_files[0]))  # 最初のテンプレートを使用
-    doc.render(context)
+#     doc = DocxTemplate(os.path.join(template_folder, template_files[0]))  # 最初のテンプレートを使用
+#     doc.render(context)
 
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-    response['Content-Disposition'] = 'attachment; filename="report.docx"'
-    doc.save(response)
+#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+#     response['Content-Disposition'] = 'attachment; filename="report.docx"'
+#     doc.save(response)
 
-    return response
+#     return response
 
