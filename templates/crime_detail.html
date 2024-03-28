@@ -1,21 +1,23 @@
 {% extends 'base.html' %}
+{% load japanese_era %}
+{% load custom_filters %}
 
 
 {% block content %}
     <div class="container m-auto p-4">
         <div class="detail border-2 rounded border-green-700 py-3 px-2">
-            <h2 class="text-lg">{{ object.crime_name }}（{{ object.crime_name_second }}）</h2>
-            <p><span class="text-sm">発生日時：</span>{{ object.crime_start_date }} {{ object.crime_start_time }}ころから{{ object.crime_end_date }} {{ object.crime_end_time }}ころまでの間</p>
-            <p><span class="text-sm">発生場所：</span>{{ object.crime_place }}</p>
-            <h4>概要:</h4>
-            <p class="ml-12 mb-5">{{ object.crime_fact }}</p>
+            <h2 class="text-lg">{{ object.crime_name }}（{{ object.crime_name_second|default_if_none:'' }}）</h2>
+            <p><span class="text-sm">発生日時：</span>{{ object.crime_start_date|to_japanese_era  }} {{ object.crime_start_time|to_japanese_time }}ころから{{ object.crime_end_date|to_japanese_era  }} {{ object.crime_end_time|to_japanese_time }}ころまでの間</p>
+            <p><span class="text-sm">発生場所：</span>{{ object.crime_place|default_if_none:'' }}</p>
+            <h4><span clas="text-sm">概要:</span></h4>
+            <p class="ml-12 mb-5">{{ object.crime_fact|default_if_none:'' }}</p>
             <p></p>
             <h3><被疑者人定事項></h3>
-            <p><span class="text-sm">本籍：</span>{{ object.suspect_honseki }}</p>
-            <p><span class="text-sm">住居：</span>{{ object.suspect_address }}</p>
-            <p><span class="text-sm">職業：</span>{{ object.suspect_job }}</p>
-            <p><span class="text-sm">氏名：</span>{{ object.suspect_name }}</p>
-            <p><span class="text-sm">生年月日：</span>{{ object.suspect_birthday }}</p>
+            <p><span class="text-sm">本籍：</span>{{ object.suspect_honseki|default_if_none:'' }}</p>
+            <p><span class="text-sm">住居：</span>{{ object.suspect_address|default_if_none:'' }}</p>
+            <p><span class="text-sm">職業：</span>{{ object.suspect_job|default_if_none:'' }}</p>
+            <p><span class="text-sm">氏名：</span>{{ object.suspect_name|default_if_none:'' }}</p>
+            <p><span class="text-sm">生年月日：</span>{{ object.suspect_birthday|to_japanese_era  }}</p>
         </div>
     
 
@@ -38,23 +40,5 @@
             <input type="file" id="docxFile" name="docxFile" accept=".docx">
             <button type="submit" class="bg-red-400 hover:bg-red-500 rounded text-white py-2 px-5">報告書生成</button>
         </form>
-
-        {% comment %} <form method="post" action="">
-            {% csrf_token %}
-            <div>
-                <label for="template">テンプレートを選択してください:</label>
-                <div>{{ docx_files }}</div>
-            </div>
-            <div>Templates found: {{ templates|length }}</div> 
-            <div>Template_dir:{{ template_dir }}</div>
-            <div>Template_files:{{ template_files }}</div>
-            <select name="template" id="template">
-                    {% for template in docx_files %}
-                    <option value="{{ template }}">{{ template }}</option>
-                    {% endfor %}
-            </select>
-            <input type="submit" value="報告書作成">
-        </form> {% endcomment %}
-
     </div>
 {% endblock content %}

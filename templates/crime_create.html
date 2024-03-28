@@ -1,13 +1,93 @@
 {% extends 'base.html' %}
+{% load japanese_era %}
 
 
 {% block content %}
 <div class="container m-auto p-2">    
     <form action="" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% comment %} {{ form.as_p }} {% endcomment %}
+
+        <div class="mb-5">
+            <label for="crime_name">罪名：</label><input type="text" name="crime_name" id="crime_input" value="" class="rounded-lg mr-5"><div id="suggestions"></div>
+            <label for="crime_name_second">中種別：</label><input type="text" name="crime_name_second" id="crime_name_second" value="" class="rounded-lg">
+        </div>
+
+
+        <div class="mb-5">
+            <span>発生日時：</span>
+            <input type="date" name="crime_start_date" id="" value="" class="rounded-lg">
+            <input type="time" name="crime_start_time" id="" value="" class="rounded-lg">〜
+            <input type="date" name="crime_end_date" id="" value="" class="rounded-lg">
+            <input type="time" name="crime_end_time" id="" value="" class="rounded-lg">            
+        </div>
+
+        <div class="mb-5">
+            <label for="crime_place">発生場所：</label><input type="text" name="crime_place" id="crime_place" value="" class="rounded-lg w-3/4">            
+        </div>
+
+        <div class="flex">
+            <label for="crime_fact">犯罪事実：</label><textarea name="crime_fact" id="crime_fact" cols="100" rows="5" class="rounded-lg"></textarea>
+        </div>
+
+        <div class="mt-9">
+            <p>被疑者</p>
+            <div class="mb-4">
+                <label for="suspect_honseki">本籍：</label><input type="text" name="suspect_honseki" id="suspect_honseki" value="{{ object.suspect_honseki }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_address">住居：</label><input type="text" name="suspect_address" id="suspect_address" value="{{ object.suspect_address }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_job">職業：</label><input type="text" name="suspect_job" id="suspect_job" value="{{ object.suspect_job }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_name">氏名：</label><input type="text" name="suspect_name" id="suspect_name" value="{{ object.suspect_name }}" class="rounded-lg">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_birthday">生年月日：</label><input type="date" name="suspect_birthday" id="suspect_birthday" value="{{ object.suspect_birthday|to_japanese_era  }}" class="rounded-lg">
+            </div>
+        </div>
+
         <button type="submit" class="text-gray-300 border-2 border-green-600 rounded py-2 px-4 bg-slate-700 hover:text-green-400">登録する</button>
     </form>
 </div>
 {% endblock content %}
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const crimeInput = document.getElementById('crime_input');
+        const suggestionsContainer = document.getElementById('suggestions');
+
+        console.log(crimeInput);
+        console.log(suggestionsContainer);
     
+        crimeInput.addEventListener('input', function() {
+            const inputText = this.value;
+            console.log(inputText)
+    
+            // APIから提案を取得
+            fetch(`/api/suggest/crime/?q=${encodeURIComponent(inputText)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // 提案を表示する前に、以前の提案をクリア
+                    suggestionsContainer.innerHTML = '';
+    
+                    // 提案を動的に表示
+                    data.forEach(function(item) {
+                        const div = document.createElement('div');
+                        div.textContent = item;
+                        suggestionsContainer.appendChild(div);
+    
+                        // 提案をクリックしたときの動作（オプション）
+                        div.addEventListener('click', function() {
+                            crimeInput.value = item; // テキストフィールドに値を設定
+                            suggestionsContainer.innerHTML = ''; // 提案をクリア
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching suggestions:', error));
+        });
+    });
+</script>

@@ -1,12 +1,55 @@
 {% extends 'base.html' %}
+{% load japanese_era %}
 
 
 {% block content %}
-<div class="container py-4 px-5">
+<div class="container py-4 px-5 m-auto">
     
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% comment %} {{ form.as_p }} {% endcomment %}
+
+        <div class="mb-5">
+            <label for="crime_name">罪名：</label><input type="text" name="crime_name" id="crime_name" value="{{ object.crime_name }}" class="rounded-lg mr-5">
+            <label for="crime_name_second">中種別：</label><input type="text" name="crime_name_second" id="crime_name_second" value="{{ object.crime_name_second|default_if_none:'' }}" class="rounded-lg">
+        </div>
+
+
+        <div class="mb-5">
+            <span>発生日時：</span>
+            <input type="date" name="crime_start_date" id="" value="{{ object.crime_start_date|date:'Y-m-d' }}" class="rounded-lg">
+            <input type="time" name="crime_start_time" id="" value="{{ object.crime_start_time|time:'H:i' }}" class="rounded-lg">〜
+            <input type="date" name="crime_end_date" id="" value="{{ object.crime_end_date|date:'Y-m-d'  }}" class="rounded-lg">
+            <input type="time" name="crime_end_time" id="" value="{{ object.crime_end_time|time:'H:i' }}" class="rounded-lg">            
+        </div>
+
+        <div class="mb-5">
+            <label for="crime_place">発生場所：</label><input type="text" name="crime_place" id="crime_place" value="{{ object.crime_place|default_if_none:'' }}" class="rounded-lg w-3/4">            
+        </div>
+
+        <div class="flex">
+            <label for="crime_fact">犯罪事実：</label><textarea name="crime_fact" id="crime_fact" cols="100" rows="5" class="rounded-lg">{{ object.crime_fact|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mt-9">
+            <p>被疑者</p>
+            <div class="mb-4">
+                <label for="suspect_honseki">本籍：</label><input type="text" name="suspect_honseki" id="suspect_honseki" value="{{ object.suspect_honseki|default_if_none:'' }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_address">住居：</label><input type="text" name="suspect_address" id="suspect_address" value="{{ object.suspect_address|default_if_none:'' }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_job">職業：</label><input type="text" name="suspect_job" id="suspect_job" value="{{ object.suspect_job|default_if_none:'' }}" class="rounded-lg w-3/4">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_name">氏名：</label><input type="text" name="suspect_name" id="suspect_name" value="{{ object.suspect_name|default_if_none:'' }}" class="rounded-lg">
+            </div>
+            <div class="mb-4">
+                <label for="suspect_birthday">生年月日：</label><input type="date" name="suspect_birthday" id="suspect_birthday" value="{{ object.suspect_birthday|date:'Y-m-d' }}" class="rounded-lg">
+            </div>
+        </div>
+
         <button type="submit" class="hover:opacity-70 text-white border-2 border-green-600 rounded py-2 px-5 bg-slate-900">更新</button>
     </form>
 

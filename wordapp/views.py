@@ -9,7 +9,14 @@ import glob
 from django.conf import settings
 from wordproject.settings import DOCX_TEMPLATE_DIR
 from django.core.files.storage import default_storage
-
+from django.utils.dateformat import DateFormat
+from django.utils.formats import get_format
+import datetime
+from django.http import JsonResponse
+import json
+import markovify
+from django.views.decorators.csrf import csrf_exempt
+import openai
 
 class DivisionListView(ListView):
     model = Division
@@ -96,39 +103,36 @@ class CrimeUpdate(UpdateView):
 
 
 
+def japanese_era_format(date):
+    if date is None:
+        return ''  # 日付がNoneの場合は空文字列を返す
+    # 和暦表示への変換ロジックをここに実装
+    # 仮の実装として、西暦をそのまま文字列にして返します
+    if date >= datetime.date(2019, 5, 1):
+        era_name = "令和"
+        era_year = date.year - 2018
+    elif date >= datetime.date(1989, 1, 8):
+        era_name = "平成"
+        era_year = date.year - 1988
+    else:
+        era_name = "昭和"  # 仮の処理、他の年号についても同様に追加する
+        era_year = date.year - 1925  # 仮の処理、実際の計算は年号によって異なる
 
+    if era_year == 1:
+        era_year_str = "元年"
+    else:
+        era_year_str = f"{era_year}年"
 
+    return f"{era_name}{era_year_str}{date.month}月{date.day}日"
 
-
-
-# def generate_report(request, pk):
-#     crime = Crime.objects.get(pk=pk)
-#     doc = DocxTemplate("/Users/matsuzakidaiki/anaconda3/envs/django_word_env/wordproject/docx_templates/人着の写真撮影報告書.docx")
-#     context = {
-#         'division': crime.division.name,
-#         'crime_name': crime.crime_name, 
-#         'crime_fact': crime.crime_fact, 
-#         'crime_start_date': crime.crime_start_date,
-#         'crime_start_time': crime.crime_start_time,
-#         'crime_end_date': crime.crime_end_date,
-#         'crime_end_time': crime.crime_end_time,
-#         'crime_place': crime.crime_place,
-#         'suspect_honseki': crime.suspect_honseki,
-#         'suspect_address': crime.suspect_address,
-#         'suspect_job': crime.suspect_job,
-#         'suspect_name': crime.suspect_name,
-#         'suspect_birthday': crime.suspect_birthday,
-#         }
-#     doc.render(context)
-
-
-#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-#     response['Content-Disposition'] = 'attachment; filename="report.docx"'
-#     doc.save(response)
-
-#     return response
-
-
+def japanese_time_format(time):
+    if time is None:
+        return ''  # 日付がNoneの場合は空文字列を返す
+    # カスタム時間フォーマットへの変換ロジックをここに実装
+    # 仮の実装として、時間をそのまま文字列にして返します
+    if time:
+        return time.strftime("%H時%M分")
+    return ''
 
 
 def generate_report(request, pk):
@@ -143,16 +147,16 @@ def generate_report(request, pk):
         'division': crime.division.name,
         'crime_name': crime.crime_name, 
         'crime_fact': crime.crime_fact, 
-        'crime_start_date': crime.crime_start_date,
-        'crime_start_time': crime.crime_start_time,
-        'crime_end_date': crime.crime_end_date,
-        'crime_end_time': crime.crime_end_time,
+        'crime_start_date': japanese_era_format(crime.crime_start_date),
+        'crime_start_time': japanese_time_format(crime.crime_start_time),
+        'crime_end_date': japanese_era_format(crime.crime_end_date),
+        'crime_end_time': japanese_era_format(crime.crime_end_date),
         'crime_place': crime.crime_place,
         'suspect_honseki': crime.suspect_honseki,
         'suspect_address': crime.suspect_address,
         'suspect_job': crime.suspect_job,
         'suspect_name': crime.suspect_name,
-        'suspect_birthday': crime.suspect_birthday,
+        'suspect_birthday': japanese_era_format(crime.suspect_birthday),
         }
         doc.render(context)
 
@@ -168,65 +172,15 @@ def generate_report(request, pk):
         # 適切なエラーメッセージを返します。
         return HttpResponse(status=400, content='Invalid request')
 
-# def select_template(request, pk):
-#     crime = Crime.objects.get(pk=pk)
-#     template_dir = settings.DOCX_TEMPLATE_DIR # docx_templatesディレクトリの絶対パスを取得
-#     template_files = glob.glob(os.path.join(template_dir, '*.docx')) # .docx拡張子のファイルをすべて取得
-#     # テンプレートファイル名のみをリストに格納する
-#     templates = [os.path.basename(template_file) for template_file in template_files]
-#     print(template_dir)
-#     print("Templates found:", templates)  # 正しい変数名を使用する
+
+def load_crime_data():
+    with open('data/crime_types.json', 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+crime_data = load_crime_data()
 
 
-#     if request.method == 'POST':
-#         selected_template = request.POST.get('template')
-#         template_path = os.path.join(template_dir, selected_template)
-        
-#         if os.path.exists(template_path) and os.path.isfile(template_path):
-#             doc = DocxTemplate(template_path)
-#             context = {'title': crime.title, 'detail': crime.detail}
-#             doc.render(context)
-
-#             response = HttpResponse(
-#                 content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-#             )
-#             response['Content-Disposition'] = 'attachment; filename="{}"'.format(selected_template)
-#             doc.save(response)
-
-#             return response
-
-#     # テンプレートファイル名のみをリストに格納する
-#     templates = [os.path.basename(template_file) for template_file in template_files]
-#     return render(request, 'crime_detail.html', {'templates': templates, 'crime': crime, 'template_dir': template_dir, 'template_files': template_files})
-
-# def select_template(request, pk):
-#     crime = Crime.objects.get(pk=pk)
-#     # docx_templatesフォルダ内の全てのdocxファイルを取得
-#     template_folder = os.path.join(settings.BASE_DIR, 'docx_templates')
-#     template_files = [file for file in os.listdir(DOCX_TEMPLATE_DIR) if file.endswith('.docx')]
-#     context = {
-#         'division': crime.division.name,
-#         'crime_name': crime.crime_name, 
-#         'crime_fact': crime.crime_fact, 
-#         'crime_start_date': crime.crime_start_date,
-#         'crime_start_time': crime.crime_start_time,
-#         'crime_end_date': crime.crime_end_date,
-#         'crime_end_time': crime.crime_end_time,
-#         'crime_place': crime.crime_place,
-#         'suspect_honseki': crime.suspect_honseki,
-#         'suspect_address': crime.suspect_address,
-#         'suspect_job': crime.suspect_job,
-#         'suspect_name': crime.suspect_name,
-#         'suspect_birthday': crime.suspect_birthday,
-#         'template_files': template_files,  # テンプレートファイルのリストを追加
-#     }
-
-#     doc = DocxTemplate(os.path.join(template_folder, template_files[0]))  # 最初のテンプレートを使用
-#     doc.render(context)
-
-#     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-#     response['Content-Disposition'] = 'attachment; filename="report.docx"'
-#     doc.save(response)
-
-#     return response
-
+def suggest_crime_name(request):
+    input_text = request.GET.get('q', '')  # URLからクエリパラメータを取得
+    suggestions = [crime for crime in crime_data["罪名"] if crime.startswith(input_text)]
+    return JsonResponse(suggestions, safe=False)
