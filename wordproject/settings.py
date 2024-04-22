@@ -41,7 +41,6 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,6 +55,8 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',
     'django_browser_reload',
+    'formtools',
+    'widget_tweaks',
 ]
 
 TAILWIND_APP_NAME = 'theme'
@@ -142,6 +143,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# # collectstaticが静的ファイルを収集するディレクトリ
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# # アプリケーション固有の静的ファイルディレクトリ（必要に応じて）
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

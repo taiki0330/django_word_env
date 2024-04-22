@@ -1,7 +1,12 @@
+from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView
+from django.utils.dateparse import parse_date
 from .models import Division, Crime
 from django.urls import reverse_lazy
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from formtools.wizard.views import SessionWizardView
+from .forms import CrimeInfoForm, CrimeDetailForm, SuspectInfoForm
+from django.core.exceptions import ValidationError
 from docxtpl import DocxTemplate
 from django.http import HttpResponse
 import os
@@ -40,6 +45,13 @@ class CrimeListview(ListView):
 class CrimeDetailView(DetailView):
     model = Crime
     template_name = 'crime_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        crime = self.get_object()
+        # CrimeインスタンスからDivisionインスタンスのIDを取得
+        context['division_id'] = crime.division.id
+        return context
 
 
 class CrimeCreate(CreateView):
@@ -55,7 +67,7 @@ class CrimeCreate(CreateView):
         'crime_fact',
         'suspect_honseki',
         'suspect_address',
-        'suspect_job',
+        'suspect_job',  
         'suspect_name',
         'suspect_birthday',
         ]
@@ -67,6 +79,54 @@ class CrimeCreate(CreateView):
     
     def get_success_url(self):
         return reverse_lazy('crime_list', kwargs={'division_id': self.kwargs['division_id']})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['division_id'] = self.kwargs['division_id']
+        return context
+
+
+
+class CrimeWizardView(SessionWizardView):
+    template_name = 'crime_wizard_form.html'
+    form_list = [CrimeInfoForm, CrimeDetailForm, SuspectInfoForm]
+
+    def dispatch(self, request, *args, **kwargs):
+        self.division_id = kwargs['division_id']
+        request.session['division_id'] = self.division_id  # セッションにdivision_idを保存
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_template_names(self):
+        # ステップ番号に基づいて異なるテンプレートを返す
+        return [f'crime_wizard_form_step_{self.steps.current}.html']
+
+    def get_form_initial(self, step):
+        initial = super().get_form_initial(step)
+        if step == '0':
+            initial['division'] = self.division_id
+        return initial
+
+    def done(self, form_list, **kwargs):
+        crime_id = self.request.session.get('crime_id')
+        if crime_id:
+            crime = Crime.objects.get(id=crime_id)
+        else:
+            crime = form_list[0].save(commit=False)
+            crime.division_id = self.division_id
+            crime.save()
+            self.request.session['crime_id'] = crime.id  # セッションにcrime_idを保存
+
+        for form in form_list[1:]:
+            form_instance = form.save(commit=False)
+            for field, value in form.cleaned_data.items():
+                setattr(crime, field, value)
+            crime.save()
+
+        self.request.session.pop('crime_id', None)  # セッションからcrime_idを削除
+        return redirect(reverse_lazy('crime_list', kwargs={'division_id': self.division_id}))
+    
+    
+
 
 
 class CrimeDelete(DeleteView):
@@ -77,6 +137,7 @@ class CrimeDelete(DeleteView):
         division_id = self.object.division_id
         # division_idを用いてリダイレクト先のURLを生成
         return reverse_lazy('crime_list', kwargs={'division_id': division_id})
+
 
 class CrimeUpdate(UpdateView):
     model = Crime
@@ -100,6 +161,12 @@ class CrimeUpdate(UpdateView):
     def get_success_url(self):
         # 更新後にcrime_detailページに戻る
         return reverse_lazy('crime_detail', kwargs={'pk': self.object.pk})
+    
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['crime_id'] = self.get_object().id
+        return context
 
 
 
@@ -169,7 +236,7 @@ def generate_report(request, pk):
 
         return response
     else:
-        # 適切なエラーメッセージを返します。
+        # 適切なエラーメッセージを返す。
         return HttpResponse(status=400, content='Invalid request')
 
 

@@ -8,7 +8,15 @@
     <title>事件管理</title>
     {% tailwind_css %}
 </head>
-<body>    
+<body>
+    <h3 class="text-2xl py-3 px-5 border-green-500 border-b-4 border">事件管理
+        <span>
+            {% block page_specific_content %}
+            {% endblock page_specific_content %}
+        </span>
+    </h3>
+    {% block breadcrumb %}
+    {% endblock breadcrumb %}
     {% block content %}
     {% endblock content %}
 </body>

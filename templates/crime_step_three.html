@@ -1,0 +1,19 @@
+<form method="post" action="{% url 'crime_wizard' division_id=division_id %}">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="3">
+    <label for="crime_place">犯罪発生場所:</label>
+    <input type="text" id="crime_place" name="crime_place">
+    <label for="crime_fact">犯罪事実:</label>
+    <textarea id="crime_fact" name="crime_fact"></textarea>
+    <label for="suspect_honseki">被疑者本籍:</label>
+    <input type="text" id="suspect_honseki" name="suspect_honseki">
+    <label for="suspect_address">被疑者住所:</label>
+    <input type="text" id="suspect_address" name="suspect_address">
+    <label for="suspect_job">被疑者職業:</label>
+    <input type="text" id="suspect_job" name="suspect_job">
+    <label for="suspect_name">被疑者氏名:</label>
+    <input type="text" id="suspect_name" name="suspect_name">
+    <label for="suspect_birthday">被疑者生年月日:</label>
+    <input type="date" id="suspect_birthday" name="suspect_birthday">
+    <button type="submit">登録</button>
+</form>

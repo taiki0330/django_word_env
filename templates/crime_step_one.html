@@ -1,0 +1,84 @@
+<form method="post" action="{% url 'crime_wizard' division_id=division_id %}">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="1">
+    <label for="crime_name">罪名:</label>
+    <input type="text" id="crime_name" name="crime_name">
+    <label for="crime_name_second">中種別:</label>
+    <input type="text" id="crime_name_second" name="crime_name_second">
+    <button type="submit">次へ</button>
+</form>
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const crimeInput = document.getElementById('{{ wizard.form.crime_name.id_for_label }}');
+    const crimeSecondInput = document.getElementById('{{ wizard.form.crime_name_second.id_for_label }}');
+    const suggestionBox = document.getElementById('suggestion-box');
+
+    crimeInput.addEventListener('focus', function() {
+        updateSuggestions();
+        suggestionBox.classList.remove('hidden');
+    });
+
+    crimeInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            suggestionBox.classList.add('hidden');
+        }, 200);
+    });
+
+    function updateSuggestions() {
+        const division = '{{ request.GET.division }}' || '刑事一課';  // URLパラメータからdivisionを取得
+        const suggestions = {
+            '刑事一課': ['暴行', '傷害', '器物損壊', '殺人', '強姦'],
+            '刑事二課': ['詐欺', '大麻', '覚醒剤'],
+            '刑事三課': ['窃盗', '空き巣', '強盗']
+        };
+        const crimeList = suggestions[division] || [];
+        const listContainer = suggestionBox.querySelector('#crime-suggestion-list');
+        listContainer.innerHTML = '';  // 既存のリストをクリア
+        crimeList.forEach(function(crime) {
+            const listItem = document.createElement('li');
+            listItem.textContent = crime;
+            listItem.classList.add('py-2', 'px-3', 'hover:bg-gray-100', 'cursor-pointer');
+            listItem.onclick = function() {
+                selectCrime(crime);
+            };
+            listContainer.appendChild(listItem);
+        });
+    }
+
+    function selectCrime(crime) {
+        crimeInput.value = crime;
+        updateCrimeSecondCategory(crime);
+        suggestionBox.classList.add('hidden');
+    }
+
+    function updateCrimeSecondCategory(crime) {
+        // 中種別のリストを更新するロジックをここに追加
+        // 例:
+        const subCategories = {
+            '暴行': [],
+            '傷害': [],
+            '器物損壊': [],
+            '殺人': [],
+            '強姦': [],
+            '詐欺': ['訪問販売詐欺', 'インターネット詐欺', 'その他詐欺'],
+            '大麻': ['栽培', '所持', '使用'],
+            '覚醒剤': ['所持', '使用', '密売'],
+            '窃盗': ['空き巣', 'スリ', '万引き'],
+        };
+
+        // 既存の中種別の選択肢をクリア
+        while (crimeSecondInput.firstChild) {
+            crimeSecondInput.removeChild(crimeSecondInput.firstChild);
+        }
+
+        // 新しい中種別の選択肢を追加
+        subCategories[crime].forEach(function(subCategory) {
+            const option = document.createElement('option');
+            option.value = subCategory;
+            option.textContent = subCategory;
+            crimeSecondInput.appendChild(option);
+        });
+    }
+})

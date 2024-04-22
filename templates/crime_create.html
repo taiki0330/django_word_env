@@ -1,93 +1,112 @@
 {% extends 'base.html' %}
 {% load japanese_era %}
 
+{% block page_specific_content %}
+    <div class="text-lg font-bold py-2 px-4">
+        |
+        {% if division_id == 1 %}
+            一課事件
+        {% elif division_id == 2 %}
+            二課事件
+        {% elif division_id == 3 %}
+            三課事件
+        {% else %}
+            事件一覧
+        {% endif %}
+        | 新規事件登録
+    </div>
+{% endblock page_specific_content %}
+
+{% block breadcrumb %}
+    <nav aria-label='breadcrumb' class="flex bg-gray-100 p-3 rounded">
+        <ol class="list-none flex space-x-2">
+            <li><a href="{% url 'division_list' %}" class="text-blue-600 hover:text-green-600">トップページ＞</a></li>
+            <li><a href="{% url 'crime_list' division_id=division_id %}" class="text-blue-600 hover:text-green-600">
+                {% if division_id == 1 %}
+                    一課事件一覧＞
+                {% elif division_id == 2 %}
+                    二課事件一覧＞
+                {% elif division_id == 3 %}
+                    三課事件一覧＞
+                {% else %}
+                    事件一覧＞
+                {% endif %}
+            </a></li>
+        </ol>
+    </nav>
+{% endblock breadcrumb %}
 
 {% block content %}
-<div class="container m-auto p-2">    
+<div class="flex justify-between items-center p-5">
+    <h4 class="text-md"><a href="{% url 'crime_list' division_id=division_id%}" class="text-blue-600 hover:text-green-500">＜戻る</a></h4>
+    <button class="bg-green-600 py-2 px-4 rounded text-white font-bold text-lg hover:bg-green-500 border shadow-md">
+        <a href="{% url 'crime_wizard' division_id=division_id%}" class="block text-white">エクステンションズを利用する</a>
+    </button>
+</div>
+<div class="container mx-auto p-5 bg-white shadow rounded-lg">
     <form action="" method="post">
         {% csrf_token %}
-        {% comment %} {{ form.as_p }} {% endcomment %}
-
-        <div class="mb-5">
-            <label for="crime_name">罪名：</label><input type="text" name="crime_name" id="crime_input" value="" class="rounded-lg mr-5"><div id="suggestions"></div>
-            <label for="crime_name_second">中種別：</label><input type="text" name="crime_name_second" id="crime_name_second" value="" class="rounded-lg">
-        </div>
-
-
-        <div class="mb-5">
-            <span>発生日時：</span>
-            <input type="date" name="crime_start_date" id="" value="" class="rounded-lg">
-            <input type="time" name="crime_start_time" id="" value="" class="rounded-lg">〜
-            <input type="date" name="crime_end_date" id="" value="" class="rounded-lg">
-            <input type="time" name="crime_end_time" id="" value="" class="rounded-lg">            
-        </div>
-
-        <div class="mb-5">
-            <label for="crime_place">発生場所：</label><input type="text" name="crime_place" id="crime_place" value="" class="rounded-lg w-3/4">            
-        </div>
-
-        <div class="flex">
-            <label for="crime_fact">犯罪事実：</label><textarea name="crime_fact" id="crime_fact" cols="100" rows="5" class="rounded-lg"></textarea>
-        </div>
-
-        <div class="mt-9">
-            <p>被疑者</p>
+        <div class="grid grid-cols-2 gap-4">
             <div class="mb-4">
-                <label for="suspect_honseki">本籍：</label><input type="text" name="suspect_honseki" id="suspect_honseki" value="{{ object.suspect_honseki }}" class="rounded-lg w-3/4">
+                <label for="crime_name" class="block text-gray-700 text-sm font-bold mb-2">罪名：</label>
+                <input type="text" name="crime_name" id="crime_input" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <div id="suggestions" class="text-sm"></div>
             </div>
             <div class="mb-4">
-                <label for="suspect_address">住居：</label><input type="text" name="suspect_address" id="suspect_address" value="{{ object.suspect_address }}" class="rounded-lg w-3/4">
+                <label for="crime_name_second" class="block text-gray-700 text-sm font-bold mb-2">中種別：</label>
+                <input type="text" name="crime_name_second" id="crime_name_second" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
             </div>
-            <div class="mb-4">
-                <label for="suspect_job">職業：</label><input type="text" name="suspect_job" id="suspect_job" value="{{ object.suspect_job }}" class="rounded-lg w-3/4">
+            <div class="mb-4 col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">発生日時：</label>
+                <div class="flex gap-2">
+                    <input type="date" name="crime_start_date" class="form-input rounded-md border-gray-300 shadow-sm">
+                    <input type="time" name="crime_start_time" class="form-input rounded-md border-gray-300 shadow-sm">
+                    <span class="self-center">〜</span>
+                    <input type="date" name="crime_end_date" class="form-input rounded-md border-gray-300 shadow-sm">
+                    <input type="time" name="crime_end_time" class="form-input rounded-md border-gray-300 shadow-sm">
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="suspect_name">氏名：</label><input type="text" name="suspect_name" id="suspect_name" value="{{ object.suspect_name }}" class="rounded-lg">
+            <div class="mb-4 col-span-2">
+                <label for="crime_place" class="block text-gray-700 text-sm font-bold mb-2">発生場所：</label>
+                <input type="text                " name="crime_place" id="crime_place" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
             </div>
-            <div class="mb-4">
-                <label for="suspect_birthday">生年月日：</label><input type="date" name="suspect_birthday" id="suspect_birthday" value="{{ object.suspect_birthday|to_japanese_era  }}" class="rounded-lg">
+            <div class="mb-4 col-span-2">
+                <label for="crime_fact" class="block text-gray-700 text-sm font-bold mb-2">犯罪事実：</label>
+                <textarea name="crime_fact" id="crime_fact" cols="30" rows="5" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm"></textarea>
             </div>
         </div>
 
-        <button type="submit" class="text-gray-300 border-2 border-green-600 rounded py-2 px-4 bg-slate-700 hover:text-green-400">登録する</button>
+        <div class="mt-6">
+            <p class="text-lg font-bold">被疑者情報</p>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="mb-4">
+                    <label for="suspect_honseki" class="block text-gray-700 text-sm font-bold mb-2">本籍：</label>
+                    <input type="text" name="suspect_honseki" id="suspect_honseki" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="suspect_address" class="block text-gray-700 text-sm font-bold mb-2">住居：</label>
+                    <input type="text" name="suspect_address" id="suspect_address" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="suspect_job" class="block text-gray-700 text-sm font-bold mb-2">職業：</label>
+                    <input type="text" name="suspect_job" id="suspect_job" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="suspect_name" class="block text-gray-700 text-sm font-bold mb-2">氏名：</label>
+                    <input type="text" name="suspect_name" id="suspect_name" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="suspect_birthday" class="block text-gray-700 text-sm font-bold mb-2">生年月日：</label>
+                    <input type="date" name="suspect_birthday" id="suspect_birthday" value="" class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-4">
+            <button type="submit" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded shadow">
+                登録する
+            </button>
+        </div>
     </form>
 </div>
 {% endblock content %}
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const crimeInput = document.getElementById('crime_input');
-        const suggestionsContainer = document.getElementById('suggestions');
-
-        console.log(crimeInput);
-        console.log(suggestionsContainer);
-    
-        crimeInput.addEventListener('input', function() {
-            const inputText = this.value;
-            console.log(inputText)
-    
-            // APIから提案を取得
-            fetch(`/api/suggest/crime/?q=${encodeURIComponent(inputText)}`)
-                .then(response => response.json())
-                .then(data => {
-                    // 提案を表示する前に、以前の提案をクリア
-                    suggestionsContainer.innerHTML = '';
-    
-                    // 提案を動的に表示
-                    data.forEach(function(item) {
-                        const div = document.createElement('div');
-                        div.textContent = item;
-                        suggestionsContainer.appendChild(div);
-    
-                        // 提案をクリックしたときの動作（オプション）
-                        div.addEventListener('click', function() {
-                            crimeInput.value = item; // テキストフィールドに値を設定
-                            suggestionsContainer.innerHTML = ''; // 提案をクリア
-                        });
-                    });
-                })
-                .catch(error => console.error('Error fetching suggestions:', error));
-        });
-    });
-</script>
