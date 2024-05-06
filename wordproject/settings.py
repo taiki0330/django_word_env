@@ -40,7 +40,8 @@ GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = [] ローカル用はこっちに切り替える
+ALLOWED_HOSTS = ['3.114.143.22', 'crime-paper.com', 'www.crime-paper.com']
 
 # Application definition
 
@@ -148,10 +149,10 @@ STATIC_URL = 'static/'
 # # collectstaticが静的ファイルを収集するディレクトリ
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# # アプリケーション固有の静的ファイルディレクトリ（必要に応じて）
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static')
-# ]
+# アプリケーション固有の静的ファイルディレクトリ（必要に応じて）
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
