@@ -27,7 +27,6 @@ from django.views.decorators.csrf import csrf_exempt
 import openai
 import io
 # from pathlib import Path
-from google.cloud import vision
 
 
 class IndexView(TemplateView):
@@ -118,16 +117,16 @@ class CrimeWizardView(SessionWizardView):
         
         return self.get_form_step_data(form)
     
-    def analyze_image(image_path):
-        # 画像ファイルをGoogle Vision APIに送信し、解析結果を取得する
-        client = vision.ImageAnnotatorClient()
-        with io.open(image_path, 'rb') as image_file:
-            content = image_file.read()
+    # def analyze_image(image_path):
+    #     # 画像ファイルをGoogle Vision APIに送信し、解析結果を取得する
+    #     client = vision.ImageAnnotatorClient()
+    #     with io.open(image_path, 'rb') as image_file:
+    #         content = image_file.read()
 
-        image = vision.Image(content=content)
-        response = client.text_detection(image=image)  # テキスト検出を使用
-        texts = response.text_annotations
-        return texts
+    #     image = vision.Image(content=content)
+    #     response = client.text_detection(image=image)  # テキスト検出を使用
+    #     texts = response.text_annotations
+    #     return texts
     
     def get_template_names(self):
         # ステップ番号に基づいて異なるテンプレートを返す
