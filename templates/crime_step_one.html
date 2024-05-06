@@ -82,3 +82,233 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 })
+
+
+
+
+
+
+
+
+
+
+
+
+console.log({{ request.session.division_id }})
+
+
+
+
+const crimeInput = document.getElementById('{{ wizard.form.crime_name.id_for_label }}');
+const suggestionBox = document.getElementById('suggestion-box')
+
+console.log(crimeInput)
+console.log(suggestionBox)
+
+crimeInput.addEventListener('focus', () => {
+    suggestionBox.classList.remove('hidden');
+});
+
+crimeInput.addEventListener('blur', () => {
+    setTimeout(() => {
+        suggestionBox.classList.add('hidden');
+    }, 200);
+});
+
+function selectCrime(crime) {
+    crimeInput.value = crime;
+    suggestionBox.classList.add('hidden');
+}
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const crimeInput = document.getElementById('{{ wizard.form.crime_name.id_for_label }}');
+    const crimeSuggestionBox = document.getElementById('crime-name-suggestion-box');
+    const categoryInput = document.getElementById('{{ wizard.form.crime_name_second.id_for_label }}');
+    const categorySuggestionBox = document.getElementById('crime-second-category-suggestion-box');
+
+    crimeInput.addEventListener('focus', function () {
+        updateCrimeSuggestions();
+        crimeSuggestionBox.classList.remove('hidden');
+    });
+    crimeInput.addEventListener('blur', function () {
+        setTimeout(function () { crimeSuggestionBox.classList.add('hidden'); }, 200);
+    });
+
+    categoryInput.addEventListener('focus', function () {
+        updateCategorySuggestions();
+        categorySuggestionBox.classList.remove('hidden');
+    });
+    categoryInput.addEventListener('blur', function () {
+        setTimeout(function () { categorySuggestionBox.classList.add('hidden'); }, 200);
+    });
+
+    function selectCrime(crime) {
+        crimeInput.value = crime;
+        crimeSuggestionBox.classList.add('hidden');
+        updateCategorySuggestions(crime);  // 更新中種別候補
+    }
+
+    function selectCategory(category) {
+        categoryInput.value = category;
+        categorySuggestionBox.classList.add('hidden');
+    }
+
+    function updateCrimeSuggestions() {
+        // 罪名候補の更新ロジック
+        const suggestions = {
+            '刑事一課': ['暴行', '傷害', '器物損壊', '殺人', '強姦'],
+            '刑事二課': ['詐欺', '大麻取締法違反', '覚醒剤取締法違反'],
+            '刑事三課': ['窃盗']
+        };
+        const division = '{{ request.session.division_id }}';  // セッションからdivision_idを取得
+        const crimeList = suggestions[division] || [];
+        const listContainer = crimeSuggestionBox.querySelector('ul');
+        listContainer.innerHTML = '';  // リストをクリア
+    
+        crimeList.forEach(crime => {
+            const listItem = document.createElement('li');
+            listItem.textContent = crime;
+            listItem.classList.add('py-2', 'px-3', 'hover:bg-gray-100', 'cursor-pointer');
+            listItem.onclick = () => selectCrime(crime);
+            listContainer.appendChild(listItem);
+        });
+    }
+
+    function updateCategorySuggestions(crime) {
+        // 中種別候補の更新ロジック、選択した罪名に基づいて中種別を更新
+        const subCategorySuggestions = {
+            '詐欺': ['訪問盗', '詐欺盗', '詐欺その他'],
+            '覚醒剤取締法違反': ['所持', '使用'],
+            '窃盗': ['万引き', '空き巣', '車上狙い', '事務所荒らし']
+        };
+        const subCategories = subCategorySuggestions[crime] || [];
+        const listContainer = categorySuggestionBox.querySelector('ul');
+        listContainer.innerHTML = '';  // リストをクリア
+    
+        subCategories.forEach(subCategory => {
+            const listItem = document.createElement('li');
+            listItem.textContent = subCategory;
+            listItem.classList.add('py-2', 'px-3', 'hover:bg-gray-100', 'cursor-pointer');
+            listItem.onclick = () => selectCategory(subCategory);
+            listContainer.appendChild(listItem);
+        });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const crimeInput = document.getElementById('{{ wizard.form.crime_name.id_for_label }}');
+    const crimeSecondInput = document.getElementById('{{ wizard.form.crime_name_second.id_for_label }}');
+    const crimeSuggestionBox = document.getElementById('crime-name-suggestion-box');
+    const crimeSecondCategorySuggestionBox = document.getElementById('crime-category-suggestion-box');
+
+    const divisionId = {{ request.session.division_id }};
+    const divisions = {
+        1: { crimes: ['暴行', '傷害', '器物損壊', '殺人', '強姦'], subCategories: {} },
+        2: { crimes: ['詐欺', '大麻取締法違反', '覚醒剤取締法違反'], subCategories: { '詐欺': ['訪問盗', '詐欺盗', '詐欺その他'], '覚醒剤取締法違反': ['所持', '使用'] }},
+        3: { crimes: ['窃盗'], subCategories: { '窃盗': ['万引き', '空き巣', '車上狙い', '事務所荒らし'] }}
+    };
+
+     // 中種別データを定義
+    const subCategorySuggestions = {
+        '詐欺': ['訪問盗', '詐欺盗', '詐欺その他'],
+        '大麻取締法違反': ['所持', '使用'],
+        '覚醒剤取締法違反': ['所持', '使用'],
+        '窃盗': ['万引き', '空き巣', '車上狙い', '事務所荒らし']
+    };
+
+    crimeInput.addEventListener('focus', function () {
+        updateCrimeSuggestions(divisions[divisionId].crimes);
+        crimeSuggestionBox.classList.remove('hidden');
+    });
+
+    crimeInput.addEventListener('blur', function() {
+        setTimeout(() => {
+            crimeSuggestionBox.classList.add('hidden');
+        }, 200);
+    });
+
+    crimeSecondInput.addEventListener('focus', function () {
+        const selectedCrime = crimeInput.value;
+        updateCrimeSecondCategories(divisions[divisionId].subCategories[selectedCrime]);
+        crimeSecondCategorySuggestionBox.classList.remove('hidden');
+    });
+
+    crimeSecondInput.addEventListener('blur', function () {
+        setTimeout(() => {
+            crimeSecondCategorySuggestionBox.classList.add('hidden');
+        }, 200);
+    });
+
+    function selectCrime(crime) {
+        crimeInput.value = crime;
+        updateCrimeSecondCategories(divisions[divisionId].subCategories[crime]);
+        crimeSuggestionBox.classList.add('hidden');
+    }
+
+    function selectCategory(category) {
+        crimeSecondInput.value = category;
+        crimeSecondCategorySuggestionBox.classList.add('hidden');
+    }
+
+    function updateCrimeSuggestions(crimes) {
+        const listContainer = document.getElementById('crime-name-suggestions');
+        console.log(listContainer)
+        listContainer.innerHTML = '';
+        crimes.forEach(crime => {
+            const listItem = document.createElement('li');
+            listItem.textContent = crime;
+            listItem.className = 'py-2 px-3 hover:bg-gray-100 cursor-pointer';
+            listItem.onclick = () => selectCrime(crime);
+            listContainer.appendChild(listItem);
+        });
+    }
+
+    function updateCrimeSecondCategories(category) {
+        const listContainer = document.getElementById('crime-category-suggestions');
+        listContainer.innerHTML = '';  // リストをクリア
+    
+        // カテゴリに応じた中種別データを取得
+        const subCategories = subCategorySuggestions[category];
+    
+        // subCategoriesが配列かどうかをチェック
+        if (Array.isArray(subCategories)) {
+            subCategories.forEach(subCategory => {
+                const listItem = document.createElement('li');
+                listItem.textContent = subCategory;
+                listItem.className = 'py-2 px-3 hover:bg-gray-100 cursor-pointer';
+                listItem.onclick = () => selectCategory(subCategory);
+                listContainer.appendChild(listItem);
+            });
+        } else {
+            // 配列でない場合は中種別がないとみなしてメッセージを表示
+            const noSubCategoryItem = document.createElement('li');
+            noSubCategoryItem.textContent = '該当する中種別がありません';
+            noSubCategoryItem.className = 'py-2 px-3 text-gray-500';
+            listContainer.appendChild(noSubCategoryItem);
+        }
+    }
+    
+})

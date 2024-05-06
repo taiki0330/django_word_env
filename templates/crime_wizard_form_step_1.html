@@ -1,6 +1,7 @@
-<!-- templates/crime_wizard_form.html -->
+<!-- templates/crime_wizard_form_step_1.html -->
 {% extends 'base.html' %}
 {% load widget_tweaks %}
+{% load japanese_era %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto p-5">
@@ -8,23 +9,11 @@
         {% csrf_token %}
         {{ wizard.management_form }}
 
-        {% comment %} <!-- 候補リストの吹き出し -->
-        <div id="suggestion-box" class="absolute right-0 top-0 mt-1 mr-1 w-48 bg-white rounded-lg shadow-lg p-3 hidden">
-            <ul class="text-sm list-disc pl-5">
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('暴行')">暴行</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('傷害')">傷害</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('器物損壊')">器物損壊</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('殺人')">殺人</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('強姦')">強姦</li>
-            </ul>
-        </div> {% endcomment %}
-
-        <!-- フォームフィールド -->
         {% for field in wizard.form %}
         <div class="mb-4">
             <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
             <div class="mt-1">
-                {{ field|add_class:'block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50' }}
+                {{ field|add_class:'block w-full' }}
                 {% if field.help_text %}
                 <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
                 {% endif %}
@@ -32,33 +21,121 @@
         </div>
         {% endfor %}
 
-        <!-- 送信ボタン -->
+        <!-- 文章テンプレート選択リスト -->
+        <div id="template-container" class="mb-4">
+            <!-- JSでテンプレートを挿入 -->
+        </div>
+
         <div class="flex justify-end">
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
                 次へ
             </button>
         </div>
+
+
     </form>
 </div>
 
-
 <script>
-    const crimeInput = document.getElementById('{{ wizard.form.crime_name.id_for_label }}');
-    const suggestionBox = document.getElementById('suggestion-box');
 
-    crimeInput.addEventListener('focus', () => {
-        suggestionBox.classList.remove('hidden');
-    });
-
-    crimeInput.addEventListener('blur', () => {
-        setTimeout(() => {
-            suggestionBox.classList.add('hidden');
-        }, 200);
-    });
-
-    function selectCrime(crime) {
-        crimeInput.value = crime;
-        suggestionBox.classList.add('hidden');
+        // 和暦への変換関数
+    function toJapaneseEra(dateStr) {
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        let eraName, eraYear;
+        if (year >= 2019) {
+            eraName = "令和";
+            eraYear = year - 2018;
+        } else if (year >= 1989) {
+            eraName = "平成";
+            eraYear = year - 1988;
+        } else {
+            eraName = "昭和";
+            eraYear = year - 1925;
+        }
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        return `${eraName}${eraYear}年${month}月${day}日`;
     }
-    </script>
+
+    // 日本時間への変換関数
+    function toJapaneseTime(timeStr) {
+        const time = new Date(`1970-01-01T${timeStr}Z`);
+        const hours = time.getHours();
+        const minutes = time.getMinutes();
+        return `${hours}時${minutes}分`;
+}
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const crimeName = "{{ crime_name }}";
+        const crimeNameSecond = "{{ crime_name_second }}";
+        const crimePlace = "{{ crime_place }}";
+        const crimeStartDate = toJapaneseEra("{{ crime_start_date }}");
+        const crimeStartTime = toJapaneseTime("{{ crime_start_time }}");
+        const crimeEndDate = toJapaneseEra("{{ crime_end_date }}");
+        const crimeEndTime = toJapaneseTime("{{ crime_end_time }}");
+    
+        const templates = {
+            '暴行': [
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、被害者に〇〇という暴行を加えたもの。`,
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、〇〇をして被害者に暴行を加えたもの。`,
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、被害者の〇〇を〇〇で殴打したもの。`,
+            ],
+            '大麻取締法違反': [
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、乾燥大麻〇〇グラムを所持していたもの。`,
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、乾燥植物片〇〇グラムを所持していたもの。`,
+                `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、大麻成分入り液体リキッドを所持していたもの。`,
+            ],
+            '覚醒剤取締法違反': {
+                'default': [
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、覚醒剤〇〇グラムを所持していたもの。`
+                ],
+                '所持': [
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、覚醒剤〇〇グラムを所持していたもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、チャック付ポリ袋入り白色結晶を所持していたもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、チャック付ポリ袋入り覚醒剤〇〇グラムを所持していたもの。`,
+                ],
+                '使用': [
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、覚醒剤を使用したもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、覚醒剤を体内に取り入れたもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、覚醒剤成分を体内に取り入れ使用したもの。`,
+                ],
+            },
+            '窃盗': {
+                'default': [
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、〇〇を窃取したもの。`
+                ],
+                '万引き': [
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、食料品〇〇店（販売価格〇〇円）を窃取したもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、食料品〇〇店（販売価格〇〇円）を万引きしたもの。`,
+                    `被疑者は${crimeStartDate} ${crimeStartTime}ころから${crimeEndDate} ${crimeEndTime}ころまでの間、${crimePlace}において、〇〇を万引きしたもの。`,    
+                ]
+            },
+        };
+    
+        const selectedCrimeTemplates = templates[crimeName];
+        let selectedTemplates = [];
+
+        if (typeof selectedCrimeTemplates === 'object' && !Array.isArray(selectedCrimeTemplates)) {
+            selectedTemplates = selectedCrimeTemplates[crimeNameSecond] || selectedCrimeTemplates['default'];
+        } else {
+            selectedTemplates = selectedCrimeTemplates || ["テンプレートがありません。"];
+        }
+
+        const container = document.getElementById('template-container');
+        container.innerHTML = '';
+
+        selectedTemplates.forEach((template) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'template-choice w-full text-left px-4 py-2 my-1 text-sm text-gray-700 bg-white rounded-md shadow hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out';
+            button.textContent = template;
+            button.onclick = () => {
+                document.getElementById('crime-fact-input').value = template;
+            };
+            container.appendChild(button);
+        });
+    });
+</script>
+
 {% endblock %}

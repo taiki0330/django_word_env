@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import DivisionListView, CrimeListview, CrimeDetailView, CrimeCreate, CrimeDelete, CrimeUpdate, generate_report,suggest_crime_name, CrimeWizardView
+from .views import IndexView, DivisionListView, CrimeListview, CrimeDetailView, CrimeCreate, CrimeDelete, CrimeUpdate, generate_report,suggest_crime_name, CrimeWizardView
 urlpatterns = [
-    path('', DivisionListView.as_view(), name='division_list'),
+    path('', IndexView.as_view(), name='home'),
+    path('division_list', DivisionListView.as_view(), name='division_list'),
     path('crime_list/<int:division_id>', CrimeListview.as_view(), name='crime_list'),
     path('crime_list/<int:division_id>/create/', CrimeCreate.as_view(), name="crime_create"),
     path('crime_list/<int:division_id>/create/crime_wizard', CrimeWizardView.as_view(), name='crime_wizard'),

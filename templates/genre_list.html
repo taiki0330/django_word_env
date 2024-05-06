@@ -1,13 +1,33 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block page_specific_content %}
+    <div class="flex flex-col items-center py-8">
+        <h2 class="text-blue-500 text-3xl font-bold">
+            刑事課ジャンル別
+        </h2>
+{% endblock page_specific_content %}
 
 {% block content %}
-    <div class="container mx-auto py-4">
-        <ul class="list-none">        
-            {% for division in object_list %}
-                <li class="text-2xl font-semibold my-2 px-5 py-3 border border-gray-300 rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
-                    <a href="{% url 'crime_list' division.id %}" class="text-gray-700 hover:text-green-700">{{ division.name }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+<div class="container mx-auto py-4">
+    <div class="grid grid-cols-3 gap-4">
+        {% for division in object_list %}
+            <div class="flex flex-col items-center rounded-lg bg-white border-gray-300 shadow hover:shadow-2xl transition-shadow duration-300 px-4 py-6">
+                <a href="{% url 'crime_list' division.id %}" class="text-gray-500 hover:text-blue-500">
+                <div class="text-gray-700 font-semibold text-2xl text-center">{{ division.name }}</div>
+                {% comment %} <a href="{% url 'crime_list' division.id %}" class="text-gray-500 hover:text-blue-500">詳細を見る</a> {% endcomment %}
+                {% if division.name == '刑事第一課' %}
+                    <img src="{% static 'images/division_1.jpeg' %}" alt="{{ division.name }}" class="w-full h-auto object-cover rounded-lg mb-4">
+                {% elif division.name == '刑事第二課' %}
+                    <img src="{% static 'images/division_2.jpeg' %}" alt="{{ division.name }}" class="w-full h-auto object-cover rounded-lg mb-4">
+                {% elif division.name == '刑事第三課' %}
+                    <img src="{% static 'images/division_3.jpeg' %}" alt="{{ division.name }}" class="w-full h-auto object-cover rounded-lg mb-4">
+                {% else %}
+                    <img src="{{ division.image.url }}" alt="{{ division.name }}" class="w-full h-32 object-cover rounded-lg mb-4">
+                {% endif %}
+                </a>
+            </div>
+        {% endfor %}
     </div>
+</div>
 {% endblock content %}

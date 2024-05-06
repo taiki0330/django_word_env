@@ -1,16 +1,15 @@
 {% extends 'base.html' %}
 
 {% block page_specific_content %}
-    <div class="text-lg font-bold py-2 px-4">
-        {% if division_id == 1 %}
-            刑事一課の事件一覧
-        {% elif division_id == 2 %}
-            刑事二課の事件一覧
-        {% elif division_id == 3 %}
-            刑事三課の事件一覧
-        {% else %}
-            事件一覧
-        {% endif %}
+    <div class="flex flex-col items-center py-8">
+        <h2 class="text-blue-500 text-3xl font-bold">
+            {% if division_id == 1 %}刑事一課の事件一覧
+            {% elif division_id == 2 %}刑事二課の事件一覧
+            {% elif division_id == 3 %}刑事三課の事件一覧
+            {% else %}事件一覧
+            {% endif %}
+        </h2>
+        <a href="{% url 'crime_create' division_id=division_id %}" class="inline-block mt-4 px-6 py-3 bg-white rounded-lg text-blue-500 font-medium hover:bg-blue-100 shadow-md">新規登録</a>
     </div>
 {% endblock page_specific_content %}
 
@@ -23,21 +22,17 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <h4 class="text-md pt-2 px-8"><a href="{% url 'division_list' %}" class="text-md hover:text-green-500">＜戻る</a></h4>
-    <div class="container mx-auto">
-        <a href="{% url 'crime_create' division_id=division_id %}" class="bg-black text-white max-w-xs rounded border-2 border-green-700 text-center text-lg py-2 px-4 block mt-4 ml-4 mb-5 hover:bg-green-700 hover:text-white">新規登録</a>
+    <div class="container mx-auto py-8">
         <ul class="list-none">
             {% for crime in object_list %}
                 <li class="border-gray-300 border-dashed border-b last:border-b-0 py-4 px-2">
                     {% if crime.crime_name_second %}
-                        <a href="{% url 'crime_detail' crime.id %}" class="hover:text-green-600">{{ crime.crime_name }}（{{ crime.crime_name_second|default_if_none:'' }}）</a>
+                        <a href="{% url 'crime_detail' crime.id %}" class="inline-block hover:text-green-600">{{ crime.crime_name }}（{{ crime.crime_name_second|default_if_none:'' }}）</a>
                     {% else %}
-                        <a href="{% url 'crime_detail' crime.id %}" class="hover:text-green-600">{{ crime.crime_name }}</a>
+                        <a href="{% url 'crime_detail' crime.id %}" class="inline-block hover:text-green-600">{{ crime.crime_name }}</a>
                     {% endif %}
                 </li>
             {% endfor %}
         </ul>
     </div>
 {% endblock content %}
-
-

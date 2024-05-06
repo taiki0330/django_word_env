@@ -34,6 +34,7 @@ APIKEY = os.getenv("OPENAI_APIKEY")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -145,7 +146,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # # collectstaticが静的ファイルを収集するディレクトリ
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # # アプリケーション固有の静的ファイルディレクトリ（必要に応じて）
 # STATICFILES_DIRS = [

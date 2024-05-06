@@ -8,16 +8,32 @@
     <title>事件管理</title>
     {% tailwind_css %}
 </head>
-<body>
-    <h3 class="text-2xl py-3 px-5 border-green-500 border-b-4 border">事件管理
-        <span>
-            {% block page_specific_content %}
-            {% endblock page_specific_content %}
-        </span>
-    </h3>
+<body class="bg-[rgb(240,255,255)]">
+    <header class="bg-gradient-to-r from-blue-500 to-blue-300 py-5">
+        <div class="container mx-auto flex flex-col items-center justify-between">
+            <h1 class="text-white text-5xl font-bold">事件管理</h1>
+        </div>
+    </header>
+
     {% block breadcrumb %}
     {% endblock breadcrumb %}
-    {% block content %}
-    {% endblock content %}
+
+    <main class="container mx-auto py-8">
+        <section class="bg-white border border-gray-200 rounded-lg shadow-md px-4 py-6">
+            {% block page_specific_content %}
+            {% endblock page_specific_content %}
+        </section>
+
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <footer class="bg-blue-800 py-4">
+        <div class="container mx-auto flex items-center justify-between text-gray-500">
+            <p>&copy; {{ year }} 事件管理システム</p>
+            <a href="#" class="inline-block">プライバシーポリシー</a>
+        </div>
+    </footer>
+
 </body>
 </html>

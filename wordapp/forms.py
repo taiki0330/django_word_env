@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import ModelForm
+from django.forms import ModelForm, ImageField
 from .models import Crime
 
 class CrimeInfoForm(ModelForm):
@@ -30,7 +30,8 @@ class CrimeInfoForm(ModelForm):
     #     self.fields['crime_name_second'].choices = []
     #     self.fields['crime_name'].widget.attrs.update({'onchange': 'updateSecondCategory();'})
 
-
+    
+    
 class CrimeDetailForm(ModelForm):
     class Meta:
         model = Crime
@@ -39,10 +40,17 @@ class CrimeDetailForm(ModelForm):
             'crime_fact': '犯罪事実',
         }
         widgets = {
-            'crime_fact': forms.Textarea(attrs={'cols': 40, 'rows': 5, 'class': 'form-control'}),
+            'crime_fact': forms.Textarea(attrs={
+                'id': 'crime-fact-input',
+                'cols': 40,
+                'rows': 5,
+                'class': 'form-control'
+            }),
         }
 
 class SuspectInfoForm(ModelForm):
+    # license_image = forms.ImageField(required=False, label='免許証画像')
+    
     class Meta:
         model = Crime
         fields = ['suspect_honseki', 'suspect_address', 'suspect_job', 'suspect_name', 'suspect_birthday']

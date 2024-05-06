@@ -2,18 +2,17 @@
 {% load japanese_era %}
 
 {% block page_specific_content %}
-    <div class="text-lg font-bold py-2 px-4">
-        |
+    <div class="text-blue-500 text-3xl font-bold">
         {% if division_id == 1 %}
-            一課事件
+            刑事一課事件
         {% elif division_id == 2 %}
-            二課事件
+            刑事二課事件
         {% elif division_id == 3 %}
-            三課事件
+            刑事三課事件
         {% else %}
-            事件一覧
+            刑事事件一覧
         {% endif %}
-        | 新規事件登録
+        　新規事件登録
     </div>
 {% endblock page_specific_content %}
 
@@ -40,7 +39,7 @@
 <div class="flex justify-between items-center p-5">
     <h4 class="text-md"><a href="{% url 'crime_list' division_id=division_id%}" class="text-blue-600 hover:text-green-500">＜戻る</a></h4>
     <button class="bg-green-600 py-2 px-4 rounded text-white font-bold text-lg hover:bg-green-500 border shadow-md">
-        <a href="{% url 'crime_wizard' division_id=division_id%}" class="block text-white">エクステンションズを利用する</a>
+        <a href="{% url 'crime_wizard' division_id=division_id%}" class="block text-white">入力補助機能</a>
     </button>
 </div>
 <div class="container mx-auto p-5 bg-white shadow rounded-lg">

@@ -1,0 +1,22 @@
+{% load static tailwind_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APE</title>
+    {% tailwind_css %}
+</head>
+<body class="bg-[rgb(240,255,255)] flex items-center justify-center h-screen">
+    {% load static %}
+    <div class="flex flex-col items-center justify-center">
+        <!-- ロゴ画像 -->
+        <img src="{% static 'images/ape.jpeg' %}" alt="トップページ" class="w-2/4 h-auto mb-4">
+        <!-- ボタン -->
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <a href="{% url 'division_list' %}" class="no-underline text-white">Enter</a>
+        </button>
+    </div>
+</body>
+</html>

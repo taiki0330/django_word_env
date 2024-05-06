@@ -8,17 +8,6 @@
     <form method="post">
         {% csrf_token %}
         {{ wizard.management_form }}
-{% comment %} 
-        <!-- 候補リストの吹き出し -->
-        <div id="suggestion-box" class="absolute right-0 top-0 mt-1 mr-1 w-48 bg-white rounded-lg shadow-lg p-3 hidden">
-            <ul class="text-sm list-disc pl-5">
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('暴行')">暴行</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('傷害')">傷害</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('器物損壊')">器物損壊</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('殺人')">殺人</li>
-                <li class="hover:bg-gray-100 cursor-pointer" onclick="selectCrime('強姦')">強姦</li>
-            </ul>
-        </div> {% endcomment %}
 
         <!-- フォームフィールド -->
         {% for field in wizard.form %}
@@ -33,26 +22,117 @@
         </div>
         {% endfor %}
 
+        {% comment %} <!-- カメラ起動ボタン -->
+        <button type="button" id="start-camera" class="mb-4 px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">免許証を撮影</button>
+        <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+        <button id="capture" type="button" class="mb-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75" style="display:none;">撮影</button>
+        <canvas id="canvas" style="display:none;"></canvas>
+
+        <!-- 免許証の写真選択ボタン -->
+        <div class="mb-4">
+            <input type="file" id="license-photo-input" accept="image/*" class="hidden" onchange="uploadLicenseImage(this)">
+            <label for="license-photo-input" class="mb-4 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 cursor-pointer">免許証写真を選択</label>
+        </div> {% endcomment %}
+
         <!-- 送信ボタン -->
         <div class="flex justify-end">
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-                次へ
+                登録
             </button>
         </div>
+
     </form>
 </div>
 
 
 <script>
-    // 候補を選択してフォームフィールドに設定
-    function selectCrime(crime) {
-        document.getElementById('id_crime_name').value = crime;
-        document.getElementById('suggestion-box').classList.add('hidden');
+    const startCameraButton = document.getElementById('start-camera');
+    const video = document.getElementById('video');
+    const captureButton = document.getElementById('capture');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    let stream = null;
+
+    startCameraButton.onclick = function () {
+        startCameraButton.style.display = 'none';
+        video.style.display = 'block';
+        captureButton.style.display = 'block';
+        navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+            .then(function (mediaStream) {
+                stream = mediaStream;
+                video.srcObject = mediaStream;
+            })
+            .catch(function (error) {
+                console.error("Cannot access camera: ", error);
+                alert('カメラにアクセスできません。');
+            });
+    };
+
+    captureButton.onclick = function () {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const image_data_url = canvas.toDataURL('image/png');
+        video.style.display = 'none';
+        captureButton.style.display = 'none';
+    
+        // サーバーに画像データを送信し、OCR処理を行う
+        fetch('/api/ocr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ image: image_data_url })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            // フォームにデータを入力
+            document.querySelector('#id_suspect_name').value = data.name;
+            document.querySelector('#id_suspect_address').value = data.address;
+            document.querySelector('#id_suspect_birthday').value = data.birthday;
+        })
+        .catch(error => {
+            console.error('Error during OCR processing: ', error);
+            alert('OCR処理中にエラーが発生しました: ' + error.message);
+        });
+    };
+
+
+
+
+
+    function uploadLicenseImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var imageSrc = e.target.result;
+                processImage(imageSrc);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
     
-    // ページ読み込み時に候補リストを表示
-    document.addEventListener('DOMContentLoaded', function () {
-        document.getElementById('suggestion-box').classList.remove('hidden');
-    });
-    </script>
+    function processImage(imageSrc) {
+        // ここでGoogle Vision APIにリクエストを送る
+        fetch('/api/upload-image', {
+            method: 'POST',
+            body: JSON.stringify({ image: imageSrc }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // フォームフィールドにデータをセットする
+            document.getElementById('id_suspect_address').value = data.address;
+            document.getElementById('id_suspect_name').value = data.name;
+            document.getElementById('id_suspect_birthday').value = data.birthday;
+        })
+        .catch(error => console.error('Error during OCR processing:', error));
+    }
+    
+</script>
 {% endblock %}

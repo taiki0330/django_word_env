@@ -1,5 +1,5 @@
 from django.views import View
-from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView, TemplateView
 from django.utils.dateparse import parse_date
 from .models import Division, Crime
 from django.urls import reverse_lazy
@@ -9,6 +9,9 @@ from .forms import CrimeInfoForm, CrimeDetailForm, SuspectInfoForm
 from django.core.exceptions import ValidationError
 from docxtpl import DocxTemplate
 from django.http import HttpResponse
+from PIL import Image
+import pytesseract
+from django.core.files.storage import FileSystemStorage
 import os
 import glob
 from django.conf import settings
@@ -22,6 +25,15 @@ import json
 import markovify
 from django.views.decorators.csrf import csrf_exempt
 import openai
+import io
+# from pathlib import Path
+from google.cloud import vision
+
+
+class IndexView(TemplateView):
+    template_name = "top.html"
+
+
 
 class DivisionListView(ListView):
     model = Division
@@ -90,11 +102,33 @@ class CrimeCreate(CreateView):
 class CrimeWizardView(SessionWizardView):
     template_name = 'crime_wizard_form.html'
     form_list = [CrimeInfoForm, CrimeDetailForm, SuspectInfoForm]
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'django-word-env-ec1c972e15d9.json'
+    
 
     def dispatch(self, request, *args, **kwargs):
         self.division_id = kwargs['division_id']
         request.session['division_id'] = self.division_id  # セッションにdivision_idを保存
         return super().dispatch(request, *args, **kwargs)
+    
+    def process_step(self, form):
+        # ステップごとのフォームデータを取得してセッションに保存
+        cleaned_data = form.cleaned_data
+        step_data = {key: value if not isinstance(value, (datetime.date, datetime.time)) else str(value) for key, value in cleaned_data.items()}
+        self.request.session[f'step_data_{self.steps.current}'] = step_data
+        
+        
+        return self.get_form_step_data(form)
+    
+    def analyze_image(image_path):
+        # 画像ファイルをGoogle Vision APIに送信し、解析結果を取得する
+        client = vision.ImageAnnotatorClient()
+        with io.open(image_path, 'rb') as image_file:
+            content = image_file.read()
+
+        image = vision.Image(content=content)
+        response = client.text_detection(image=image)  # テキスト検出を使用
+        texts = response.text_annotations
+        return texts
     
     def get_template_names(self):
         # ステップ番号に基づいて異なるテンプレートを返す
@@ -105,6 +139,26 @@ class CrimeWizardView(SessionWizardView):
         if step == '0':
             initial['division'] = self.division_id
         return initial
+    
+    # セッションに保存されたデータをhtmlで使えるようにする
+    def get_context_data(self, form, **kwargs):
+        # コンテキストデータを取得
+        context = super().get_context_data(form=form, **kwargs)
+        context['division_id'] = self.kwargs.get('division_id')
+        step_data = self.request.session.get('step_data_0', {})  # 1ページ目のデータを取得
+        print("Step 0 Data:", step_data)  # コンソールに出力
+                
+        context.update({
+            'crime_name': step_data.get('crime_name', ''),
+            'crime_name_second': step_data.get('crime_name_second', ''),
+            'crime_start_date': step_data.get('crime_start_date', ''),
+            'crime_start_time': step_data.get('crime_start_time', ''),
+            'crime_end_date': step_data.get('crime_end_date', ''),
+            'crime_end_time': step_data.get('crime_end_time', ''),
+            'crime_place': step_data.get('crime_place', ''),
+            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
+        })  
+        return context
 
     def done(self, form_list, **kwargs):
         crime_id = self.request.session.get('crime_id')
@@ -124,8 +178,6 @@ class CrimeWizardView(SessionWizardView):
 
         self.request.session.pop('crime_id', None)  # セッションからcrime_idを削除
         return redirect(reverse_lazy('crime_list', kwargs={'division_id': self.division_id}))
-    
-    
 
 
 
