@@ -102,7 +102,6 @@ class CrimeCreate(CreateView):
 class CrimeWizardView(SessionWizardView):
     template_name = 'crime_wizard_form.html'
     form_list = [CrimeInfoForm, CrimeDetailForm, SuspectInfoForm]
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'django-word-env-ec1c972e15d9.json'
     
 
     def dispatch(self, request, *args, **kwargs):
